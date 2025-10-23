@@ -161,28 +161,6 @@ export class ApiService {
     return product;
   }
 
-  // carga de las reseñas segun el producto
-  async loadReviews(id: number): Promise<Review[]> {
-
-    const request: Observable<Object> = this.http.get(`${this.BASE_URL}Review/byproduct/${id}`);
-    const dataRaw: any = await lastValueFrom(request);
-
-    const reviews: Review[] = [];
-
-    for (const data of dataRaw) {
-      const review: Review = {
-        reviewId: data.id,
-        text: data.text,
-        label: data.label,
-        date: data.publicationDate,
-        userId: data.userId,
-        productId: data.productId
-      }
-      reviews.push(review);
-    }
-    return reviews;
-  }
-
   async getUser(id: number): Promise<User> {
     const request: Observable<Object> =
       this.http.get(`${this.BASE_URL}User/${id}`);
@@ -225,10 +203,18 @@ export class ApiService {
     return this.post<any>('Review/newReview', reviewData);
   }
 
+  // Borrar review
+  deleteReview(reviewId: number): Promise<Result<any>> {
+    const headers = this.getHeader();
+    const url = (`Review/deleteReview/${reviewId}`);
+    return this.delete(url, { headers, responseType: 'text' });
+  }
+
   // Elimina usuario
   deleteUser(idUser: number): Observable<any> {
+    const headers = this.getHeader();
     const url = (`${this.BASE_URL}User/deleteUser/${idUser}`);
-    return this.http.delete(url, { responseType: 'text' });
+    return this.http.delete(url, { headers, responseType: 'text' });
   }
 
   // actualizar info de usuario

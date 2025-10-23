@@ -1,16 +1,15 @@
-<div class="signup-container">
+<p-toast position="top-right" key="signupSuccess" (onClose)="this.redirect()" life=2000 />
+<p-toast position="top-right" key="signupError" life=2000 />
 
-  <div class="logo">
-    <a routerLink="/">
-      <img src="logo.png" alt="Innovacom Logo" />
-    </a>
-  </div>
+<div class="signup-container">
 
   <body>
     <div class="signup-box">
 
-      <div class="user-logo">
-        <img src="user-logo.png" alt="User Logo" />
+      <div class="logo">
+        <a routerLink="/">
+          <img src="logos\comunicat-icono-borde-sm.webp" alt="Logo" />
+        </a>
       </div>
 
       <p class="registrar">Registro</p>
@@ -64,7 +63,7 @@
           <div class="error">
             <div *ngIf="myForm.get('password')?.invalid && myForm.get('password')?.touched">
               <div *ngIf="myForm.get('password')?.hasError('required')">La contraseña es obligatoria.</div>
-              <div *ngIf="myForm.get('password')?.hasError('minlength')">La contraseña debe tener mínimo 6 caracteres.
+              <div *ngIf="myForm.get('password')?.hasError('minlength')">Debe tener mínimo 6 caracteres.
               </div>
             </div>
           </div>
@@ -96,6 +95,6 @@
   </body>
 
   <footer>
-    <p>© 2024 INNOVACOM.</p>
+    <p>© 2024 COMUNICA-T</p>
   </footer>
 </div>

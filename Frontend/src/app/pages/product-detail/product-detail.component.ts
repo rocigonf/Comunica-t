@@ -1,12 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Product } from '../../models/product';
-import { Review } from '../../models/review';
 import { ApiService } from '../../services/api.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
-import { NavComponent } from "../../components/nav/nav.component";
-import { FooterComponent } from "../../components/footer/footer.component";
 import { InputNumberModule } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -15,24 +12,28 @@ import { CartService } from '../../services/cart.service';
 import { User } from '../../models/user';
 import { ReviewDto } from '../../models/reviewDto';
 import { ProductCart } from '../../models/productCart';
-import Swal from 'sweetalert2';
-import { Order } from '../../models/order';
 import { OrderService } from '../../services/order.service';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+
+import { LOCALE_ID, NgModule } from '@angular/core';
+import localeES from '@angular/common/locales/es'
+import { registerLocaleData } from '@angular/common';
+registerLocaleData(localeES, 'es')
 
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [NavComponent, FooterComponent, InputNumberModule, FormsModule, ButtonModule, CommonModule, RouterModule],
+  imports: [InputNumberModule, FormsModule, ButtonModule, CommonModule, RouterModule, ToastModule],
   templateUrl: './product-detail.component.html',
+  providers: [{ provide: LOCALE_ID, useValue: 'es' }], 
   styleUrl: './product-detail.component.css'
 })
 export class ProductDetailComponent implements OnInit {
 
   product: Product | null = null;
   productCart: ProductCart;
-
-  reviews: Review[] = [];
 
   textReview: string;
 
@@ -50,6 +51,8 @@ export class ProductDetailComponent implements OnInit {
 
   quantity = 1;
 
+  user: User;  // usuario actual
+
   // media reseñas
   avg: number = 0;
 
@@ -59,12 +62,15 @@ export class ProductDetailComponent implements OnInit {
     private cartApi: CartService,
     private activatedRoute: ActivatedRoute,
     public router: Router,
-    private orderApi: OrderService
+    private orderApi: OrderService,
+    public messageService: MessageService
   ) { }
 
   async ngOnInit(): Promise<void> {
     // usuario actual
     const user = await this.authService.getUser();
+    this.user = user;
+    //console.log(this.user)
     if (user != null) { this.isLog = true; }
     this.currentUser = user;
 
@@ -76,19 +82,11 @@ export class ProductDetailComponent implements OnInit {
 
     this.product.id = id;
 
-    // carga sus reseñas
-    this.reviews = await this.api.loadReviews(id);
-
     // ordena las reseñas por fecha de publicación a las más recientes primero
-    this.reviews.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    // obtiene info de los usuarios que han comentado
-    for (const review of this.reviews) {
-      this.users.push(await this.api.getUser(review.userId));
-    }
+    this.product.reviews.sort((a, b) => new Date(b.publicationDate).getTime() - new Date(a.publicationDate).getTime());
 
     // revisa si el usuario ya ha comentado para que no pueda comentar
-    this.hasComment = this.users.some(u => u.userId === user.userId);
+    this.hasComment = this.product.reviews.some(r => r.userId === user.userId);
 
     // obtiene los pedidos para verificar si puede poner una reseña
     const orders = await this.orderApi.getOrdersByUser(user.userId);
@@ -99,7 +97,6 @@ export class ProductDetailComponent implements OnInit {
     // calcula la media de las reseñas
     this.calculeAvg();
   }
-
 
   // añadir al carrito 
   async addToCart(): Promise<void> {
@@ -121,9 +118,9 @@ export class ProductDetailComponent implements OnInit {
         // añade producto
         try {
           await this.cartApi.addToCartBBDD(this.quantity, cart.id, Number(this.product.id));
-          this.throwDialog("El producto se ha añadido correctamente su carrito.");
+          this.throwDialog("productCart", "El producto se ha añadido correctamente su carrito.");
         } catch (e) {
-          this.throwError("Error al añadir el producto.");
+          this.throwError("productCart", "Error al añadir el producto.");
           console.log(e)
         }
       }
@@ -139,7 +136,7 @@ export class ProductDetailComponent implements OnInit {
           if (this.quantity > this.product.stock) {
 
             this.quantity = this.product.stock;
-            this.throwError("No hay stock suficiente.");
+            this.throwError("productCart", "No hay stock suficiente.");
 
           } else {
 
@@ -152,12 +149,12 @@ export class ProductDetailComponent implements OnInit {
             }
             localStorage.setItem('cartProducts', JSON.stringify(cart));
             //console.log('Producto añadido al carrito:', this.productCart);
-            this.throwDialog("El producto se ha añadido correctamente su carrito.");
+            this.throwDialog("productCart", "El producto se ha añadido correctamente su carrito.");
           }
 
         } catch (error) {
           console.log("Error: " + error)
-          this.throwError("Se ha producido un error con el producto.");
+          this.throwError("productCart", "Se ha producido un error con el producto.");
         }
 
       }
@@ -170,7 +167,7 @@ export class ProductDetailComponent implements OnInit {
     try {
       // Validar que el texto de la reseña no sea vacío o contenga solo espacios
       if (!this.textReview || this.textReview.trim().length === 0) {
-        this.throwError("La reseña no puede estar vacía.");
+        this.throwError("productCart", "La reseña no puede estar vacía.");
       } else {
         const user = this.authService.getUser();
         const idProduct = this.activatedRoute.snapshot.paramMap.get('id') as unknown as number;
@@ -185,53 +182,64 @@ export class ProductDetailComponent implements OnInit {
 
         if (result.success) {
           // se recarga la info de reseñas
-          this.reviews = await this.api.loadReviews(idProduct);
-          // obtiene info de los usuarios que han comentado
-          for (const review of this.reviews) {
-            this.users.push(await this.api.getUser(review.userId));
-          }
+          this.product = await this.api.getProduct(this.product.id);
+    
           // revisa si el usuario ya ha comentado para que no pueda comentar
-          this.hasComment = this.users.some(u => u.userId === user.userId);
+          this.hasComment = this.product.reviews.some(r => r.userId === user.userId);
+          this.calculeAvg();
         }
-
       }
     } catch (error) {
       console.error('Error al publicar la reseña: ', error);
-      this.throwError("Error al publicar la reseña.");
+      this.throwError("productCart", "Error al publicar la reseña.");
     }
+  }
 
+  // Eliminar una reseña
+  async deleteReview(reviewId: number) {
+
+    const confirmation = confirm(`¿Estás seguro de que deseas borrar la reseña?`);
+
+    if (confirmation) {
+
+      const result = await this.api.deleteReview(reviewId)
+      // console.log(result);
+
+      if (result.statusCode != 200) {
+        console.error("Error al eliminar la reseña.");
+        this.throwError("delete-review", "Error al eliminar la reseña.");
+      } else {
+        this.throwDialog("delete-review", "Reseña eliminada con éxito.");
+      }
+
+      const id = this.activatedRoute.snapshot.paramMap.get('id') as unknown as number;
+
+      this.product = await this.api.getProduct(id);
+
+      this.hasComment = this.product.reviews.some(r => r.userId === this.user.userId);
+      this.textReview = "";
+      this.calculeAvg();
+    }
   }
 
   // calculo media de reseñas
   calculeAvg(): void {
-    if (this.reviews.length > 0) {
-      const sum = this.reviews.reduce((acc, review) => acc + review.label, 0);
-      this.avg = sum / this.reviews.length;
+    if (this.product.reviews.length > 0) {
+      const sum = this.product.reviews.reduce((acc, review) => acc + review.label, 0);
+      this.avg = sum / this.product.reviews.length;
       this.avg = Math.round(this.avg)
     } else {
       this.avg = 0;
     }
-
   }
 
-  // Cuadro de diálogo de notificación
-  throwDialog(texto: string) {
-    Swal.fire({
-      title: texto,
-      icon: 'success',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true
-    });
+  // Cuadro de notificación de éxito
+  throwDialog(key: string, texto: string) {
+    this.messageService.add({ key: key, severity: 'success', summary: 'Éxito', detail: texto })
   }
 
-  // Cuadro de diálogo de error
-  throwError(error: string) {
-    Swal.fire({
-      title: "Se ha producido un error",
-      text: error,
-      icon: "error",
-      confirmButtonText: "Vale"
-    });
+  // Cuadro de notificación de error
+  throwError(key: string, error: string) {
+    this.messageService.add({ key: key, severity: 'error', summary: 'Error', detail: error })
   }
 }

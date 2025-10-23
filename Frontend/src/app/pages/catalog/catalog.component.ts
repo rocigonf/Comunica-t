@@ -1,25 +1,24 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NavComponent } from "../../components/nav/nav.component";
-import { FooterComponent } from "../../components/footer/footer.component";
 import { InputTextModule } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
-import { PaginatorModule, PaginatorState } from 'primeng/paginator';
+import { PaginatorModule } from 'primeng/paginator';
 import { Product } from '../../models/product';
 import { ApiService } from '../../services/api.service';
 import { RouterModule } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { CriterioOrden, SearchDto } from '../../models/searchDto';
 import { SelectButtonModule } from 'primeng/selectbutton';
-import Swal from 'sweetalert2';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-
-  imports: [NavComponent, FooterComponent, InputTextModule,
-    FormsModule, PaginatorModule, RouterModule, SelectButtonModule, CommonModule],
-
+  imports: [InputTextModule,
+            FormsModule, PaginatorModule, RouterModule, SelectButtonModule, 
+            CommonModule, ToastModule, ProgressSpinnerModule],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.css',
 })
@@ -33,19 +32,16 @@ export class CatalogComponent implements OnInit {
 
   query: string = '';
   currentPage = 1;
-  pageSize = 8;
-  totalPages = 0;
 
   sortOrder: boolean = true; // asc por defecto
   sortCriterio: CriterioOrden = CriterioOrden.Name; // nombre por defecto
 
-  constructor(private apiService: ApiService) { }
+  constructor(private apiService: ApiService, private messageService: MessageService) { }
 
   // al cargar la pagina se cargan todos lo productos
   async ngOnInit(): Promise<void> {
     this.loadUserConfig(); // Cargar la configuración de sessionStorage si existe
     await this.loadProducts();
-    await this.updateReviews();
   }
 
   // Cargar configuración desde sessionStorage
@@ -57,7 +53,7 @@ export class CatalogComponent implements OnInit {
         this.updateProducts(config);
       } catch (error) {
         console.error('Error al cargar la configuración de usuario:', error);
-        this.throwError("Error al cargar la configuración de usuario.");
+        this.throwError("catalog", "Error al cargar la configuración de usuario.");
       }
     }
   }
@@ -68,7 +64,6 @@ export class CatalogComponent implements OnInit {
       consulta: this.query,
       Criterio: this.sortCriterio,
       Orden: this.sortOrder,
-      CantidadPaginas: this.pageSize,
       PaginaActual: this.currentPage,
     };
     sessionStorage.setItem(this.USER_CONFIG, JSON.stringify(config));
@@ -81,7 +76,6 @@ export class CatalogComponent implements OnInit {
       consulta: this.query,
       Criterio: this.sortCriterio,
       Orden: this.sortOrder, //por defecto asc
-      CantidadPaginas: this.pageSize,
       PaginaActual: this.currentPage,
     };
 
@@ -95,11 +89,9 @@ export class CatalogComponent implements OnInit {
     try {
       const result = await this.apiService.searchProducts(searchDto);
       this.filteredProducts = result.products;
-      this.totalPages = result.totalPages;
-
     } catch (error) {
       console.error('Error al cargar los productos:', error);
-      this.throwError("Error al cargar los productos.");
+      this.throwError("catalog", "Error al cargar los productos.");
     }
   }
 
@@ -114,15 +106,8 @@ export class CatalogComponent implements OnInit {
     this.query = config.consulta;
     this.sortCriterio = config.Criterio;
     this.sortOrder = config.Orden;
-    this.pageSize = config.CantidadPaginas;
     this.currentPage = config.PaginaActual;
 
-  }
-
-  // al avanzar la pagina
-  onPageChange(event: PaginatorState) {
-    this.currentPage = event.page + 1;
-    this.loadProducts();
   }
 
   // cuando cambie criterio de orden se vuelve a cargar la pagina
@@ -143,30 +128,14 @@ export class CatalogComponent implements OnInit {
   search() {
     this.currentPage = 1;
     this.loadProducts();
-   /* console.log('Datos enviados:', {
-      query: this.query,
-      currentPage: this.currentPage,
-      pageSize: this.pageSize,
-    });*/
   }
 
   // nº de productos por pagina
   onPageSizeChange(size: number) {
     this.currentPage = 1;
-    this.pageSize = size;
     this.loadProducts();
   }
 
-  // nº de reviews de los productos
-  async updateReviews() {
-    for (const product of this.filteredProducts) {
-      try {
-        product.reviews = await this.apiService.loadReviews(product.id);
-      } catch (error) {
-        product.reviews = [];
-      }
-    }
-  }
 
   // media de reseñas de cada producto
   calculateAvg(reviews: { label: number }[]): number {
@@ -177,14 +146,8 @@ export class CatalogComponent implements OnInit {
     return 0;
   }
 
-  // Cuadro de diálogo de error
-  throwError(error: string) {
-    Swal.fire({ 
-      title: "Se ha producido un error",
-      text: error,
-      icon: "error",
-      confirmButtonText: "Vale"
-    });
+  // Cuadro de notificación de error
+  throwError(key: string, error: string) {
+    this.messageService.add({ key: key, severity: 'error', summary: 'Error', detail: error })
   }
-
 }

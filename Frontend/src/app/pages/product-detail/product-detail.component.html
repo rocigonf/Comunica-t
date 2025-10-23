@@ -1,5 +1,5 @@
-<app-nav></app-nav>
-
+<p-toast position="top-right" key="productCart" life=2000 />
+<p-toast position="top-right" key="delete-review" life=2000 />
 
 @if (product) {
 <div class="container">
@@ -12,47 +12,63 @@
     <!-- info del producto -->
     <section class="infoProduct">
         <h1>{{product.name}}</h1>
-        <p class="numRef">Número de artículo: {{product.id}}</p>
+        <p class="numRef">Identificador de artículo: {{product.id}}</p>
         <span class="price">{{product.price/100}}€</span>
-        <p>{{product.description}}</p>
+        <p [innerHTML]="product.description"></p>
 
-        <p class="text-sm text-indigo-500">{{product.stock}} en stock</p>
+        <p class="stockQuantityText">{{product.stock}} en stock</p>
         <div class="inputQuantity">
-            <p-inputNumber [(ngModel)]="quantity"  [showButtons]="true" buttonLayout="horizontal"
-                inputId="horizontal" spinnerMode="horizontal" [step]="1" [min]="1" [max]="product.stock"
-                allowEmpty=false decrementButtonClass="p-button-secondary" incrementButtonClass="p-button-secondary"
+            @if (product.stock > 0) {
+            <p-inputNumber [(ngModel)]="quantity" [showButtons]="true" buttonLayout="horizontal" inputId="horizontal"
+                spinnerMode="horizontal" [step]="1" [min]="1" [max]="product.stock" allowEmpty=false
+                decrementButtonClass="p-button-secondary" incrementButtonClass="p-button-secondary"
                 incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" />
+            } @else {
+            <p-inputNumber [(ngModel)]="product.stock" [showButtons]="true" buttonLayout="horizontal"
+                inputId="horizontal" spinnerMode="horizontal" decrementButtonClass="p-button-secondary"
+                incrementButtonClass="p-button-secondary" incrementButtonIcon="pi pi-plus"
+                decrementButtonIcon="pi pi-minus" readonly />
+            }
         </div>
 
-
         <!-- boton añadir cesta -->
-        <button (click)="addToCart()" class="m-4 p-button font-bold ml-4 vertical-align-middle"
+        <button (click)="addToCart()" class="mt-4 p-button font-bold vertical-align-middle"
             [disabled]="product.stock <= 0">Añadir a la cesta</button>
-
 
     </section>
 
-
-    <section>
+    <section class="w-full">
         <h1>Reseñas</h1>
-        <p>{{reviews.length}} reseñas. Media:
+        <p>{{product.reviews.length}} reseñas. Media:
             <span>
                 @switch (this.avg) {
                 @case (1) {
-                ⭐⭐⭐
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                </span>
                 }
                 @case (0) {
-                ⭐⭐✩
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                </span>
                 }
                 @case (-1) {
-                ⭐✩✩
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                </span>
                 }
                 }
             </span>
         </p>
 
         <p *ngIf="!authService.isAuthenticated()">
-            Para poder escribir una reseña debe 
+            Para poder escribir una reseña debe
             <a [routerLink]="'/login'" [queryParams]="{ redirectTo: router.url }">iniciar sesión.</a>
         </p>
 
@@ -60,10 +76,10 @@
         <div *ngIf="authService.isAuthenticated() && hasPurchased && !hasComment">
             <p>Añade una reseña:</p>
             <form (ngSubmit)="publicReview()">
-                <textarea class="w-full" rows="10" pInputText [(ngModel)]="textReview"
-                    [ngModelOptions]="{standalone: true}" placeholder="Escribe aquí tu reseña.">
-                </textarea>
-                <input type="submit" value="Enviar" class="p-button font-bold ml-2" />
+                <textarea class="w-full" rows="7" pInputText [(ngModel)]="textReview"
+                    [ngModelOptions]="{standalone: true}" placeholder="¡Comenta aquí que te ha parecido el producto!">
+                </textarea> <br><br>
+                <input type="submit" value="Enviar" class="p-button" />
             </form>
         </div>
 
@@ -77,44 +93,57 @@
             <p class="font-bold">Para poder dejar una reseña, debes haber comprado este producto.</p>
         </div>
 
-
         <br>
 
-        @for (review of reviews; track review.reviewId) {
+        @for (review of product.reviews; track review.id) {
         <div class="review">
             <!-- nombre usuario que ha comentado-->
-            @for (user of users; track user.userId) {
-            @if(user.userId == review.userId){
-            <span class="font-bold">👤{{user.name}}</span>
-            }
-            }
 
-            @switch (review.label) {
-            @case (1) {
-            <span>⭐⭐⭐</span>
-            }
-            @case (0) {
-            <span>⭐⭐✩</span>
-            }
-            @case (-1) {
-            <span>⭐✩✩ </span>
-            }
-            }
-            <span> {{review.date | date:'dd MMM YYYY HH:mm' | lowercase}}</span>
+            <span class="font-bold" style="display: inline-flex; align-items: center; gap: 7px;">
+                <img src="icons/user-icon.webp" style="display: block;" width="25px" alt="icono usuario">
+                {{review.user.name}}
 
-            <p class="text-sm">{{review.text}}</p>
+                @switch (review.label) {
+                @case (1) {
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                </span>
+                }
+                @case (0) {
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                </span>
+                }
+                @case (-1) {
+                <span style="display: inline-flex; align-items: center; gap: 2px;">
+                    <img src="icons/star.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                    <img src="icons/star_vacio.png" style="display: block;" width="20px">
+                </span>
+                }
+                }
+            </span>
+
+            <span style="float: inline-end; padding-right: 10px;"> 
+                {{review.publicationDate | date:"longDate" |
+                lowercase}}</span>
+
+            <p class="m-2 text-sm">{{review.text}}
+                <span class="delete" *ngIf="authService.isAuthenticated()">
+                    <img *ngIf="authService.isAdmin() || review.userId == user.userId" src="icons/bin.svg"
+                        class="delete-icon" alt="Borrar" (click)="deleteReview(review.id)">
+                </span>
+            </p>
         </div>
 
         }
         @empty {
-        <div>No hay reseñas</div>
+        <div>Aún no hay reseñas.</div>
         }
-
-
     </section>
-
-
 </div>
 }
-
-<app-footer></app-footer>

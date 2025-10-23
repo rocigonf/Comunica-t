@@ -3,21 +3,20 @@ import { CreateEthTransactionRequest } from '../../models/createEthTransactionRe
 import { Erc20Contract } from '../../models/erc20Contract';
 import { BlockchainService } from '../../services/blockchain.service';
 import { FormsModule } from '@angular/forms';
-import { NavComponent } from "../../components/nav/nav.component";
-import { FooterComponent } from '../../components/footer/footer.component';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { TemporalOrder } from '../../models/temporal-order';
 import { Subscription } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { CheckoutService } from '../../services/checkout.service';
 import { Order } from '../../models/order';
-import { eth } from 'web3';
-import Swal from 'sweetalert2';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 @Component({
   selector: 'app-blockchain',
   standalone: true,
-  imports: [FormsModule, NavComponent, FooterComponent],
+  imports: [FormsModule, ToastModule, ProgressSpinnerModule],
   templateUrl: './blockchain.component.html',
   styleUrl: './blockchain.component.css'
 })
@@ -50,7 +49,8 @@ export class BlockchainComponent implements OnInit, OnDestroy {
     private blockchainService: BlockchainService,
     private service: CheckoutService,
     private route: ActivatedRoute,
-    private router: Router
+    public router: Router,
+    private messageService: MessageService
   ) { }
 
   ngOnInit(): void {
@@ -70,7 +70,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   }
 
   async init(queryMap: ParamMap) {
-    console.log("Iniciando la página de checkout (blockchain)...");
+    //console.log("Iniciando la página de checkout (blockchain)...");
 
     // si el usuario acaba de iniciar sesión desde el redireccionamiento
     const justLoggedIn = sessionStorage.getItem("authRedirection") === 'true';
@@ -80,48 +80,48 @@ export class BlockchainComponent implements OnInit, OnDestroy {
 
     if (isNaN(this.temporalOrderId)) { // Comprueba que la ID no está vacía
       console.error("El ID de la Orden temporal no es válido: ", this.temporalOrderId);
-      this.throwError("Se ha producido un error procesando tu pedido.");
+      this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
     }
 
     this.paymentMethod = queryMap.get("paymentMethod");
 
-    console.log("ID de la Orden temporal:", this.temporalOrderId);
-    console.log("Método de pago:", this.paymentMethod);
-    console.log("Acaba de iniciar sesión:", justLoggedIn);
+    //console.log("ID de la Orden temporal:", this.temporalOrderId);
+    //console.log("Método de pago:", this.paymentMethod);
+   // console.log("Acaba de iniciar sesión:", justLoggedIn);
 
     if (justLoggedIn) {
-      console.log("El usuario acaba de iniciar sesión. Vinculando la orden temporal...");
+      //console.log("El usuario acaba de iniciar sesión. Vinculando la orden temporal...");
       const linkResponse = await this.service.linkUserToOrder(this.temporalOrderId);
 
       if (linkResponse.success) {
-        console.log("La orden temporal se vinculó exitosamente:", linkResponse.data);
+        //console.log("La orden temporal se vinculó exitosamente:", linkResponse.data);
       } else {
         console.error("Error al vincular la orden temporal:", linkResponse.error);
-        this.throwError("Se ha producido un error procesando tu pedido.");
+        this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
       }
     }
 
-    console.log("Recuperando los detalles de la orden temporal...");
+    //console.log("Recuperando los detalles de la orden temporal...");
     const orderResponse = await this.service.getOrderDetails(this.temporalOrderId);
 
     if (orderResponse.success) {
       this.orderDetails = orderResponse.data;
       this.eurosToSend = this.orderDetails.totalPrice / 100;  // recordar que esta en centimos
       this.priceInEth = this.eurosToSend * 0.00029;
-      console.log("Detalles de la orden cargados:", this.orderDetails);
-      console.log("Productos:", this.orderDetails.temporalProductOrder);
+      //console.log("Detalles de la orden cargados:", this.orderDetails);
+      //console.log("Productos:", this.orderDetails.temporalProductOrder);
       this.startOrderRefresh(); // refresco de la orden
 
       if (!(this.paymentMethod === "blockchain")) {
         console.error("El método de pago no es en blockchain");
-        this.throwError("Se ha producido un error procesando tu pedido.");
+        this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
       }
 
       this.isLoading = false;
 
     } else {
       console.error("Error al cargar los detalles de la orden:", orderResponse.error);
-      this.throwError("Se ha producido un error procesando tu pedido.");
+      this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
     }
   }
 
@@ -137,7 +137,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
 
     // Si no está instalado Metamask se lanza un error y se corta la ejecución
     if (!window.ethereum) {
-      this.throwError("No está instalado Metamask.");
+      this.throwError("blockchainError", "No está instalado Metamask.");
       throw new Error('Metamask not found');
     }
 
@@ -191,20 +191,13 @@ export class BlockchainComponent implements OnInit, OnDestroy {
     // CREAMOS PEDIDO, PASAMOS A PAGINA DE CONFIRMACION Y MOSTRAMOS DATOS
     if (checkTransactionResult.success && checkTransactionResult.data) {
       
-      Swal.fire({ // Cuadro de diálogo
-        title: "Transacción realizada con éxito",
-        text: "¡Gracias por tu compra!",
-        icon: "success",
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true
-      });
+      this.throwDialog("blockchain", "Transacción realizada con éxito. ¡Gracias por tu compra!")
 
       // creo pedido 
       this.service.newOrder(this.temporalOrderId).subscribe({
         next: (order: Order) => {
           this.createdOrder = order;
-          console.log('Pedido creado:', this.createdOrder);
+         // console.log('Pedido creado:', this.createdOrder);
 
           setTimeout(() => {
             this.orderOnComplete();
@@ -212,12 +205,12 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error al crear el pedido:', err);
-          this.throwError("Se ha producido un error procesando tu pedido.");
+          this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
         },
       });
 
     } else {
-      this.throwError("Transacción fallida");
+      this.throwError("blockchainError", "Transacción fallida.");
     }
   }
 
@@ -227,12 +220,11 @@ export class BlockchainComponent implements OnInit, OnDestroy {
     this.refreshInterval = setInterval(async () => {
       const refreshResponse = await this.service.refreshOrder(this.temporalOrderId);
       if (refreshResponse.success) {
-        console.log('Orden temporal refrescada correctamente.');
+       // console.log('Orden temporal refrescada correctamente.');
       } else {
         console.error('Error al refrescar la orden temporal:', refreshResponse.error);
-        this.throwError("Se ha producido un error procesando tu pedido.");
-      }
-    }, 60000); // Se refresca cada minuto
+        this.throwError("blockchainError", "Se ha producido un error procesando tu pedido.");
+      }}, 60000); // Se refresca cada minuto
   }
 
   cancelCheckoutDialog() {
@@ -242,24 +234,23 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   }
 
   orderOnComplete() {
-    console.log("Orden completada");
+    //console.log("Orden completada");
 
     this.cancelCheckoutDialog(); // Desmontar/destruir el checkout embebido
     // this.router.navigate(['/order-success']);  
     this.router.navigate(['/order-success/', this.createdOrder.id]);
   }
+  
 
-  // Cuadro de diálogo de error
-  throwError(error: string) {
-    Swal.fire({ 
-      title: "Se ha producido un error",
-      text: error,
-      icon: "error",
-      confirmButtonText: "Volver a inicio",
-      didClose: () => this.router.navigate(['/'])
-    });
+  // Cuadro de notificación de éxito
+  throwDialog(key: string, texto: string) {
+    this.messageService.add({ key: key, severity: 'success', summary: 'Éxito', detail: texto })
   }
 
+  // Cuadro de notificación de error
+  throwError(key: string, error: string) {
+    this.messageService.add({ key: key, severity: 'error', summary: 'Error', detail: error })
+  }
 }
 
 declare global {

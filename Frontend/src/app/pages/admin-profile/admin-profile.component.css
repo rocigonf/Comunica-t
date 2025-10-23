@@ -6,7 +6,7 @@ body {
 }
 
 .panel-top {
-    background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url("https://img.freepik.com/foto-gratis/hexagonos-rueda-engranajes-placa-circuitos_587448-4939.jpg?t=st=1733882566~exp=1733886166~hmac=2ab72809b923b29cda3c4635b5736d7a6ae7f67d272282422bf3658b9cb10ff2&w=1980");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url("https://img.freepik.com/foto-gratis/fondo-placa-base_23-2151733789.jpg?t=st=1729794199~exp=1729797799~hmac=b66faa72f5783a4ba35b83db8f2e033939890d227b5e901bfd1d319ab6580538&w=740");
     background-size: cover;
     background-position: center;
     text-align: center;
@@ -47,7 +47,7 @@ input {
     flex: 2;
     width: 100%;
     padding: 8px 12px;
-    font-size: 14px;
+    font-size: 1rem;
     color: #004a8d;
     border: 1px solid #007acc;
     border-radius: 4px;
@@ -55,59 +55,6 @@ input {
     transition: border-color 0.3s ease;
 }
 
-.profile-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.profile-row-buttons{
-    float: inline-end;
-}
-
-.profile-info {
-    max-width: 600px;
-    margin: 0 auto; /* Centrar el contenedor */
-    padding: 20px;
-    border: 1px solid #007acc;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.profile-label {
-    flex: 1;
-    font-weight: bold;
-    color: #004a8d;
-    text-align: right;
-    padding-right: 10px;
-    position: relative;
-}
-
-.profile-label::after {
-    position: absolute;
-    right: 5px;
-    color: #004a8d;
-}
-
-.profile-input {
-    flex: 2;
-}
-
-.profile-input input {
-    width: 100%;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: #004a8d;
-    border: 1px solid #007acc;
-    background-color: #f0f8ff;
-    transition: border-color 0.3s ease;
-}
-
-.profile-input input:focus {
-    border-color: #004a8d;
-    outline: none;
-}
 
 .error{
     color: rgb(201, 0, 0);
@@ -118,15 +65,29 @@ input {
 button {
     padding: 8px;
     border: 0px;
-    background-color: #875fd1;
+    background-color: #3c747c;
     color: white;
     border-radius: 30px;
     margin: 10px;
 }
 
-button:hover {
+#envio-img{
+    padding: 8px;
+    border: 0px;
+    background-color: #3c747c;
+    color: white;
+    border-radius: 30px;
+    margin: 10px;
+    width: fit-content;
+}
+
+button.btn-edit:hover{
+    background-color: rgb(151, 0, 0);
+}
+
+button:hover, #envio-img:hover{
     cursor: pointer;
-    background-color: #6f4caf;
+    background-color: #0b4258;
 }
 
 button.btn-edit{
@@ -138,7 +99,7 @@ button.btn-edit{
 }
 
 .container{
-    margin: 5%;
+    margin: 0% 5%;
 }
 
 table{
@@ -176,8 +137,12 @@ table img {
     margin: 0 auto;
 }
 
+h3{
+    font-size: 2rem;
+}
+
 .new-product-title{
-    font-size: 25px;
+    font-size: 1.5rem;
 }
 
 .formularioProducto{
@@ -193,3 +158,59 @@ table img {
 #addImageButton:hover{
     cursor: pointer;
 }
+
+
+
+/* BOTON DE SUBIR IMG    */
+
+input[type="file"] {
+    position: relative;
+  }
+  
+  input[type="file"]::file-selector-button {
+    width: 136px;
+    color: transparent;
+  }
+  
+ 
+  input[type="file"]::before {
+    position: absolute;
+    pointer-events: none;
+    top: 10px;
+    left: 16px;
+    height: 20px;
+    width: 20px;
+    content: "";
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230964B0'%3E%3Cpath d='M18 15v3H6v-3H4v3c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-3h-2zM7 9l1.41 1.41L11 7.83V16h2V7.83l2.59 2.58L17 9l-5-5-5 5z'/%3E%3C/svg%3E");
+  }
+  
+  input[type="file"]::after {
+    position: absolute;
+    pointer-events: none;
+    top: 11px;
+    left: 40px;
+    color: #0964b0;
+    content: "Elegir imagen";
+  }
+  
+  /* ------- From Step 1 ------- */
+  
+  /* file upload button */
+  input[type="file"]::file-selector-button {
+    border-radius: 4px;
+    padding: 0 16px;
+    height: 30px;
+
+    cursor: pointer;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+    margin-right: 16px;
+  }
+  
+  input[type="file"]::file-selector-button:hover {
+    background-color: #f3f4f6;
+  }
+  
+
+  

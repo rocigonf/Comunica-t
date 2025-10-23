@@ -1,35 +1,66 @@
+<p-toast position="top-right" key="logout" (onClose)="goToLogin()" life=2000 />
+
 <!-- NAVBAR MENU RESPONSIVE -->
 <p-menubar [model]="items" styleClass="custom-menubar">
 
     <!-- Logo Innovacom-->
     <ng-template pTemplate="start">
-        <img src="logo_oscuro.png" alt="Logo Innovacom" class="logo desktop-logo">
-        <img src="innova-logo.png" alt="Logo Innovacom" class="logo mobile-logo">
+        <div class="logo-container">
+            <img style=" height: 60px; margin-right: 5px;"
+                src="logos/logo-ministerio.webp" id="ministero"
+                class="logo desktop-logo" alt="Logotipo del Ministerio de Educación y Formación Profesional">
+            <img src="logos/gobierno-responsive.webp" alt="Logotipo del Gobierno de España" class="logo mobile-logo">
+
+            <a routerLink="/" style="margin-right: 15px;">
+                <img src="logos/comunicat-icono.webp" class="logo" alt="Logotipo comunica-t">
+            </a>
+        </div>
+
     </ng-template>
 
     <ng-template pTemplate="end">
-        <span class="vertical-align-middle lg:m-4" *ngIf="authService.isAuthenticated()">
-            ¡Hola, {{ name }}!
-        </span>
+        <div class="logo-container">
 
-        <a routerLink="/cart">
-            <img src="icons/cart.png" alt="carrito compra" class="cart vertical-align-middle" width="40px">
-            <span>{{ cartProductCount }}</span>
-        </a>
+            <span class="medium vertical-align-middle lg:m-4" *ngIf="authService.isAuthenticated()">
+                @if(user)
+                {
+                ¡Hola, {{ user.name }}!
+                }
+            </span>
 
-        <a>
-            <img *ngIf="authService.isAuthenticated()" src="icons/user-icon.png" alt="icono-user"
-                class="vertical-align-middle" width="40px" class="user-icon vertical-align-middle clickable"
-                (click)="navigateToProfile()">
-        </a>
+            <a routerLink="/cart" class="cart">
+                <img src="icons/cart.webp" alt="carrito compra" class="vertical-align-middle" width="45px">
+                <!-- para numeros grandes, tam de letra mas pequeño -->
+                <span style="font-size: x-small;" *ngIf="cartProductCount>=100">
+                    {{ cartProductCount }}
+                </span>
+                <span *ngIf="cartProductCount<100">
+                    {{ cartProductCount }}
+                </span>
+            </a>
 
-        <a id="inicio-sesion" *ngIf="!authService.isAuthenticated()" class="session-link" (click)="authClick()">
-            <button class="p-button font-bold ml-4 vertical-align-middle">Iniciar sesión</button>
-            <!--<img src="icons/login.png" alt="icono-login" class="vertical-align-middle" width="40px" class="mr-2 ml-4">-->
-        </a>
-        <a *ngIf="authService.isAuthenticated()" class="session-link" (click)="authClick()">
-            <img src="icons/logout.png" alt="icono-logout" width="40px" class="logout vertical-align-middle ">
-        </a>
+            <div *ngIf="authService.isAuthenticated()" style="cursor: pointer;" class="dropdown">
+                <a>
+                    <img src="icons/user-icon.webp" alt="icono-user" class="vertical-align-middle" width="40px"
+                        class="user-icon vertical-align-middle clickable; cursor: pointer;">
+                    <div class="dropdown-content">
+                        <a [routerLink]="'/user-profile'">Perfil</a>
+                        <a *ngIf="authService.isAdmin()" [routerLink]="'/admin-profile'">Administración</a>
+                        <a (click)="authClick()" class="logout-text">Cerrar Sesión</a>
+                    </div>
+                </a>
+            </div>
+
+            <a id="inicio-sesion" *ngIf="!this.isMobile() && !authService.isAuthenticated()" class="session-link"
+                (click)="authClick()">
+                <button class="p-button font-bold ml-3 mr-1 mt-2">Acceder</button>
+            </a>
+            <span style="float: right;">
+                <img src="logos/logoJunta.webp" alt="Logo Junta de Andalucía" class="logo desktop-logo">
+                <img src="logos/Andalucía-responsive.webp" alt="Logo Junta de Andalucía" class="logo mobile-logo">
+            </span>
+        </div>
+
 
     </ng-template>
 

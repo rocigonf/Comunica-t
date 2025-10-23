@@ -107,7 +107,7 @@ public class UserService
             Console.WriteLine("El usuario con ID ", userDto.UserId, " no existe.");
         }
 
-        Console.WriteLine("ID del usuario: " + existingUser.Id);
+      //  Console.WriteLine("ID del usuario: " + existingUser.Id);
 
         if (!string.IsNullOrEmpty(userDto.Name) && existingUser.Name != userDto.Name)
         {
@@ -125,7 +125,7 @@ public class UserService
         }
 
         await UpdateUser(existingUser);
-        Console.WriteLine("Usuario actualizado correctamente.", existingUser);
+       // Console.WriteLine("Usuario actualizado correctamente.", existingUser);
         await _unitOfWork.SaveAsync();
     }
 
@@ -141,7 +141,7 @@ public class UserService
             throw new InvalidOperationException("Usuario con ID:" + userId + "no encontrado.");
         }
 
-        Console.WriteLine("ID del usuario: " + existingUser.Id);
+       // Console.WriteLine("ID del usuario: " + existingUser.Id);
 
         if (!string.IsNullOrEmpty(newRole))
         {
@@ -172,7 +172,7 @@ public class UserService
         }
 
         await UpdateUser(existingUser);
-        Console.WriteLine("Usuario actualizado correctamente.", existingUser);
+       // Console.WriteLine("Usuario actualizado correctamente.", existingUser);
         await _unitOfWork.SaveAsync();
     }
 
@@ -188,28 +188,6 @@ public class UserService
             throw new InvalidOperationException("El usuario no existe.");
         }
 
-        // elimina sus reseñas, ordenes y carrito
-        var cart = await _unitOfWork.CartRepository.GetCartByUserNoDto(user.Id);
-        var reviews = await _unitOfWork.ReviewRepository.GetReviewByUser(user.Id);
-        var temporals = await _unitOfWork.TemporalOrderRepository.GetTemporalOrderByUser(user.Id);
-        var orders = await _unitOfWork.OrderRepository.GetOrderByUser(user.Id);
-
-        if (cart != null)
-        {
-            await _unitOfWork.CartRepository.Delete(cart);
-        }
-        foreach (var t in temporals)
-        {
-            await _unitOfWork.TemporalOrderRepository.Delete(t);
-        }
-        foreach (var r in reviews)
-        {
-            await _unitOfWork.ReviewRepository.Delete(r);
-        }
-        foreach (var o in orders)
-        {
-            await _unitOfWork.OrderRepository.Delete(o);
-        }
         _unitOfWork.UserRepository.DeleteUser(user);
 
         await _unitOfWork.SaveAsync();
