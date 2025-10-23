@@ -1,5 +1,5 @@
 .panel-top{
-    background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url("https://img.freepik.com/foto-gratis/fondo-azul-tecnologico_1017-3220.jpg?t=st=1733638153~exp=1733641753~hmac=8b5bc80ed3e442107d7628cf43cd388229690078baf03e19dfbb4cd05d6904d3&w=1980");
+    background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.5)), url("https://img.freepik.com/foto-gratis/fondo-placa-base_23-2151733789.jpg?t=st=1729794199~exp=1729797799~hmac=b66faa72f5783a4ba35b83db8f2e033939890d227b5e901bfd1d319ab6580538&w=740");
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -8,12 +8,32 @@
     text-shadow: #12182e 0 0 1em;
 }
 
+.product-flex-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);  /* Tres columnas */
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+    margin: 0 100px;
+}
+
+.product-flex-container.empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
 .card-container {
-    gap: 10px;                        
+    gap: 10px;  
+    display: flex;
+    justify-content: center;                      
     align-items: center;              
     padding: 10px;
     font-size: larger;
     vertical-align: middle;
+    margin: auto;
 }
 
 .card-advantage {
@@ -22,12 +42,12 @@
     border-radius: 8%;
     width: 275px;
     height: 215px;
-    box-shadow: 2px 7px 13px 0px rgba(0, 0, 0, 0.5);
+    box-shadow: 2px 7px 15px 2px rgba(0, 0, 0, 0.5);
     overflow: hidden; 
 }
 
 .card-content {
-    background-color: #0341b4ac;
+    background-color: var(--primary-color);
     flex-grow: 10; 
     text-align: center;
     padding: 5%;
@@ -35,28 +55,37 @@
 
 .card-data {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     width: 100%;
+    margin-top: auto;
 }
 
 .card-data p {
     margin: 0;
     display: inline-flex;
     align-items: center;
-    margin-right: 10px;
+}
+
+.reviews{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: -7%;
 }
 
 .card-content h2{
     color: #ffffff;
-    font-weight: bold;
-    font-size: 90%;
+    font-weight: normal;
+    font-size: 1.1rem;
     margin: 0px; 
     padding: 0px; 
-} 
+}
+
 .card-content p {
     color: #ffffff;
-    margin: 5%;
+    margin: 4%;
 }
 
 img{
@@ -65,10 +94,16 @@ img{
 
 .p-button{
     border: 0px;
-    background-color: #6f42c1;
+    background-color: #3c747c;
     color: white;
     border-radius: 30px;
 }
+
+.p-button:hover {
+    cursor: pointer;
+    background-color: #0b4258;
+}
+
 .product-flex {
     display: flex;
     flex-wrap: wrap; 
@@ -83,7 +118,7 @@ img{
 }
 
 select{
-    border: 1px solid #6f42c1;
+    border: 1px solid #0b4258;
     border-radius: 5px;
     margin: 10px 20px;
     font-size: medium;
@@ -95,11 +130,14 @@ a{
     text-decoration: none;
 }
 
-/* Responsivo para pantallas pequeñas */
-@media (max-width: 768px) {
-    .card-advantage {
-        flex: 1 1 100%;              
+/* Responsivo para pantallas medianas */
+@media (max-width: 991px) {
+    .product-flex-container {
+        grid-template-columns: repeat(2, 1fr);  /* 2 columnas */
+        grid-template-rows: auto; 
+        justify-items: center;
     }
+
     .panel-top p{
         font-size: x-large;
     }
@@ -107,4 +145,33 @@ a{
     .panel-top{
         height: 200px;
     }
-}               
+}
+
+/* Responsivo para pantallas pequeñas */
+@media (max-width: 768px) {
+    .product-flex-container {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .panel-top p{
+        font-size: x-large;
+    }
+
+    .panel-top{
+        height: 200px;
+    }
+}      
+
+/* Responsivo para pantallas muy pequeñas */
+@media (max-width: 400px) {
+    ::ng-deep .p-inputtext{
+        width: 170px;
+    }
+
+    .card-advantage {
+        width: 250px !important;
+    }
+
+    
+}   

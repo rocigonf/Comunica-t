@@ -98,7 +98,7 @@ builder.Services.AddAuthentication()
     .AddJwtBearer(options =>
     {
         Settings settings = builder.Configuration.GetSection(Settings.SECTION_NAME).Get<Settings>();
-        string key = settings.JwtKey;
+        string key = Environment.GetEnvironmentVariable("JwtKey");
 
         options.TokenValidationParameters = new TokenValidationParameters()
         {
@@ -109,13 +109,6 @@ builder.Services.AddAuthentication()
     });
 
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-/*if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}*/
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -169,5 +162,5 @@ static void InitStripe(IServiceProvider serviceProvider)
     IOptions<Settings> options = scope.ServiceProvider.GetService<IOptions<Settings>>();
 
     // Ponemos nuestro secret key
-    StripeConfiguration.ApiKey = options.Value.StripeSecret;
+    StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("StripeSecret");
 }

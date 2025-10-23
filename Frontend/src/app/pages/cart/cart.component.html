@@ -1,4 +1,5 @@
-<app-nav></app-nav>
+<p-toast position="top-right" key="cart" life=2000 />
+
 
 <!-- FIRST BLOCK WITH IMAGE AND SLOGAN -->
 <div class="panel-top h-12rem d-flex w-full">
@@ -67,10 +68,10 @@
     </div>
 
     <div class="pay-button">
-      <button (click)="goToBlockchain()">
+      <button  [disabled]="numProducts<=0" (click)="goToBlockchain()">
         Pagar con ethereum
       </button>
-      <button (click)="goToCheckout()">
+      <button [disabled]="numProducts<=0" (click)="goToCheckout()">
         Pagar con tarjeta
       </button>
       
@@ -78,5 +79,3 @@
 
   </div>
 </div>
-<!-- FOOTER -->
-<app-footer></app-footer>

@@ -1,16 +1,16 @@
 import { NgIf } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
-import Swal from 'sweetalert2';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [RouterModule, ReactiveFormsModule, FormsModule, NgIf], //ReactiveFormsModule, FormsModule, NgIf
+  imports: [RouterModule, ReactiveFormsModule, FormsModule, NgIf, ToastModule],
   templateUrl: './signup.component.html',
   styleUrl: './signup.component.css'
 })
@@ -21,11 +21,10 @@ export class SignupComponent implements OnInit {
   private redirectTo: string = null;
 
   constructor(private formBuilder: FormBuilder,
-    private http: HttpClient,
     private authService: AuthService,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private cartApi: CartService,
+    private messageService: MessageService,
     private cartService: CartService
   ) {
     this.myForm = this.formBuilder.group({
@@ -70,13 +69,11 @@ export class SignupComponent implements OnInit {
       const signupResult = await this.authService.signup(formData); // Registro
 
       if (signupResult.success) {
-        //console.log('Registro exitoso', signupResult);      
 
         const authData = { email: formData.email, password: formData.password };
         const loginResult = await this.authService.login(authData, false);
 
         if (loginResult.success) {
-          //console.log('Inicio de sesión exitoso', loginResult);
 
           // Notificar el cambio en la cantidad de productos del carrito
           this.cartService.notifyCartChange();
@@ -84,26 +81,18 @@ export class SignupComponent implements OnInit {
           const user = this.authService.getUser();
           const name = user ? user.name : null;
 
-          Swal.fire({ // Cuadro de diálogo
-            title: "Te has registrado con éxito",
-            text: `¡Hola, ${name}!`,
-            icon: 'success',
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didClose: () => this.redirect()
-          });
+          this.throwDialog("signupSuccess", "Te has registrado con éxito.")
 
         } else {
-          this.throwError("Error en el inicio de sesión");
+          this.throwError("signupError", "Error en el inicio de sesión");
         }
 
       } else {
-        this.throwError("Error en el registro");
+        this.throwError("signupError", "Error en el registro");
       }
 
     } else {
-      this.throwError("Formulario no válido");
+      this.throwError("signupError", "Formulario no válido");
     }
 
   }
@@ -117,12 +106,13 @@ export class SignupComponent implements OnInit {
     }
   }
 
-  throwError(error: string) {
-    Swal.fire({ // Cuadro de diálogo
-      title: "Se ha producido un error",
-      text: error,
-      icon: "error",
-      confirmButtonText: "Vale"
-    });
+  // Cuadro de notificación de éxito
+  throwDialog(key: string, texto: string) {
+    this.messageService.add({ key: key, severity: 'success', summary: 'Éxito', detail: texto })
+  }
+
+  // Cuadro de notificación de error
+  throwError(key: string, error: string) {
+    this.messageService.add({ key: key, severity: 'error', summary: 'Error', detail: error })
   }
 }

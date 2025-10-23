@@ -1,9 +1,12 @@
 footer{
-    color: #D1DEFF;
+    color: #ebf1ff;
     text-align: center;
     margin: 0;
-    background-color: #2A345D;
+    background-color:var(--primary-color);
     display: flex;
+    flex-shrink: 0;
+    height: auto;
+    width: 100%;
 }
 
 img{
@@ -21,7 +24,11 @@ a{
     color: #D1DEFF;
 }
 
-@media (max-width: 550px) {
+.contact-info {
+    border-left: solid 1px var(--secondary-color);
+}
+
+@media (max-width: 600px) {
     footer {
         flex: 1 1 100%;   
         display: flex;     
@@ -30,6 +37,11 @@ a{
 
     footer div{
         width: 100%;
+    }
+
+    .contact-info {
+        border-left: none;
+        border-top: solid 1px var(--secondary-color);
     }
 
 }   
